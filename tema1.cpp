@@ -355,35 +355,39 @@ public:
   }
 
   void draw(FloatType l, FloatType r, FloatType b, FloatType t, int samplePointsHorizontal, int samplePointsVertical) {
-    /*
-      Draw the current slice of the JF set onto the screen.
-      Left, right, bottom, top, and the steps for each axis.
-    */
     glPointSize(1);
     FloatType stepx = (m_xmax - m_xmin) / FloatType(samplePointsHorizontal);
     FloatType stepy = (m_ymax - m_ymin) / FloatType(samplePointsVertical);
-    FloatType steph = (r      - l)      / FloatType(samplePointsHorizontal);
-    FloatType stepv = (t      - b)      / FloatType(samplePointsVertical);
-    int iterations;
-    std::complex<FloatType> z;
+    FloatType steph = (r - l) / FloatType(samplePointsHorizontal);
+    FloatType stepv = (t - b) / FloatType(samplePointsVertical);
+
     glBegin(GL_POINTS);
-    /*
-      We need to move both on screen pixels and in the mathematical plane -
-      at the same time.
-    */
     for(FloatType jj = 0, y = m_ymin, v = b; jj < samplePointsVertical; jj += 1, y += stepy, v += stepv) {
-      z.imag(y);
-      for(FloatType ii = 0, x = m_xmin, h = l; ii < samplePointsHorizontal; ii += 1, x += stepx, h += steph) {
-	z.real(x);
-	iterations = test(z, m_c, m_maxRadius, m_maxIteration);
-	if(0 == iterations) {
-	  glColor3f(1, 0, 0);
-	  glVertex2d(h, v);	  
-	}
-      }
+        std::complex<FloatType> z;
+        z.imag(y);
+        for(FloatType ii = 0, x = m_xmin, h = l; ii < samplePointsHorizontal; ii += 1, x += stepx, h += steph) {
+            z.real(x);
+            int iterations = test(z, m_c, m_maxRadius, m_maxIteration);
+
+            if (0 == iterations) {
+                // INSIDE the set: Paint it Black
+                glColor3f(0.0f, 0.0f, 0.0f);
+            } else {
+                // OUTSIDE the set: Use the iteration count for color
+                // We normalize the value between 0 and 1
+                float t = (float)iterations / (float)m_maxIteration;
+                
+                // Example "Blue Nebula" palette:
+                // Red stays low, Green grows a bit, Blue is dominant
+                glColor3f(t * 0.2f, t * 0.5f, 0.5f + t * 0.5f);
+            }
+            glVertex2d(h, v);      
+        }
     }
     glEnd();
-  }
+}
+
+
 };
 
 void Display5() {
@@ -428,6 +432,14 @@ void Display6() {
     if (iterations < 1) iterations = 1; // Safety check
 
     // Use 'iterations' instead of the hardcoded 100
+
+    // double x_min = -0.8;
+    // double x_max = -0.7;
+    // double y_min = 0.05;
+    // double y_max = 0.15;
+
+    // MB<double> mb(x_min, x_max, y_min, y_max, 0, 0, 2.0, iterations);
+
     MB<double> mb(-2.0, 1.0, -1.2, 1.2, 0, 0, 2.0, iterations);
 
     mb.draw(-drawSize, drawSize, -drawSize, drawSize, g_w + 1, g_h + 1);

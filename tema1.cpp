@@ -258,39 +258,30 @@ void fractalSquares(Turtle t, float size, int recursionsLeft) {
   if (recursionsLeft > 0) {
     float subSize = size / 3.0f;
 
-    // 1. Position a turtle for the central hole and draw it.
-    // 't' is currently at the bottom-left of the region.
     Turtle tCenter = t;
     tCenter.move(subSize);         // Move right to the center column
     tCenter.rotate(pi/2);          // Face up
     tCenter.move(subSize);         // Move up to the center row
     tCenter.rotate(-pi/2);         // Face right again
     
-    // The drawSquare function expects the turtle at the bottom-left of the square
     drawSquare(tCenter, subSize);  
 
-    // 2. Recursively draw the holes for the 8 surrounding grid cells.
     for (int row = 0; row < 3; ++row) {
       for (int col = 0; col < 3; ++col) {
-        // Skip the center cell, as we just drew a square there
         if (row == 1 && col == 1) continue; 
 
-        // Clone the base turtle for this specific sub-region
         Turtle tSub = t;
         
-        // Move up to the correct row
         if (row > 0) {
           tSub.rotate(pi/2);
           tSub.move(subSize * row);
           tSub.rotate(-pi/2);
         }
         
-        // Move right to the correct column
         if (col > 0) {
           tSub.move(subSize * col);
         }
 
-        // Recurse into this sub-region
         fractalSquares(tSub, subSize, recursionsLeft - 1);
       }
     }
@@ -408,20 +399,38 @@ void Display5() {
 template <typename FloatType>
 class MB: public JF<FloatType> {
 public:
-  MB(FloatType xmin, FloatType xmax, FloatType ymin, FloatType ymax, FloatType a = 0, FloatType b = 0, FloatType maxRadius = 20, int maxIteration = 150):
-    JF<FloatType>(xmin, xmax, ymin, ymax, a, b, maxRadius, maxIteration) {}
+ MB(FloatType xmin, FloatType xmax, FloatType ymin, FloatType ymax, FloatType a = 0, FloatType b = 0, FloatType maxRadius = 20, int maxIteration = 150) :
+        JF<FloatType>(xmin, xmax, ymin, ymax, a, b, maxRadius, maxIteration) {}
+
+    // Overriding the test function for Mandelbrot logic
+    inline int test(std::complex<FloatType> z, std::complex<FloatType> c, double maxRadius = 2, int maxIteration = 50) override {
+    /* The loop in JF::draw passes the pixel coordinate as the 'z' argument.
+       For Mandelbrot, the pixel coordinate IS 'c', and we start at z = 0.
+    */
+    std::complex<FloatType> realC = z;      // Use the pixel coordinate as C
+    std::complex<FloatType> currentZ(0, 0); // Start sequence at 0
+    
+    for (int ii = maxIteration; ii > 0; --ii) {
+        currentZ = currentZ * currentZ + realC; 
+        if (std::abs(currentZ) > maxRadius)
+            return ii; // Diverged!
+    }
+    return 0; // Remained bounded (inside the set)
+}
 };
 
 void Display6() {
-  //Draw the Mandelbrot fractal here.
-  float drawSize = 1.0;
-  MB<double> mb(-2, 2, -2, 2);
-  /*
-    +1 because we're going full-window, and pixel-perfect drawing
-    is weird because pixels are actually placed at 0.5 coordinates.
-    More on this in the Shaders homework and lecture.
-  */
-  mb.draw(-drawSize, drawSize, -drawSize, drawSize, g_w + 1, g_h + 1);
+    float drawSize = 1.0;
+    
+    // Multiply the current recursion level by 20 to get a useful iteration count
+    // Level 2 = 40 iterations, Level 8 = 160 iterations.
+    int iterations = g_recursionCurrent * 20;
+    if (iterations < 1) iterations = 1; // Safety check
+
+    // Use 'iterations' instead of the hardcoded 100
+    MB<double> mb(-2.0, 1.0, -1.2, 1.2, 0, 0, 2.0, iterations);
+
+    mb.draw(-drawSize, drawSize, -drawSize, drawSize, g_w + 1, g_h + 1);
 }
 
 void Display7() {
@@ -575,7 +584,7 @@ int main(int argc, char** argv) {
   glutKeyboardFunc(KeyboardFunc);
   glutMouseFunc(MouseFunc);
   glutDisplayFunc(Display);
-  //glutIdleFunc(Display);
+  // glutIdleFunc(Display);
   glutMainLoop();
 
   return 0;

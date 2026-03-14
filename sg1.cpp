@@ -322,57 +322,6 @@ t \in (-\pi/2, \pi/2) \setminus \{ -\pi/6, \pi/6 \} \) .
 For this plot, \(a = 0.2\) .
  */
 void Display10() {
-  const double a = 0.2;
-  const double eps = 0.03;
-  const double s = 2.0;
-  const double dt = 0.001;
-
-  const double segments[3][2] = {
-    { -pi / 2.0 + eps, -pi / 6.0 - eps },
-    { -pi / 6.0 + eps,  pi / 6.0 - eps },
-    {  pi / 6.0 + eps,  pi / 2.0 - eps }
-  };
-
-  glColor3f(1.0, 0.75, 0.75);
-  glBegin(GL_TRIANGLES);
-  for (int i = 0; i < 3; ++i) {
-    for (double t = segments[i][0]; t < segments[i][1] - dt; t += dt) {
-      const double d1 = 4.0 * cos(t) * cos(t) - 3.0;
-      const double d2 = 4.0 * cos(t + dt) * cos(t + dt) - 3.0;
-      if (fabs(d1) < 1e-6 || fabs(d2) < 1e-6) continue;
-
-      const double x1 = (a / d1) / s;
-      const double y1 = (a * tan(t) / d1) / s;
-      const double x2 = (a / d2) / s;
-      const double y2 = (a * tan(t + dt) / d2) / s;
-
-      if (!std::isfinite(x1) || !std::isfinite(y1) || !std::isfinite(x2) || !std::isfinite(y2)) continue;
-      if (fabs(x1) > 2 || fabs(y1) > 2 || fabs(x2) > 2 || fabs(y2) > 2) continue;
-
-      glVertex2d(0.0, 0.0);
-      glVertex2d(x1, y1);
-      glVertex2d(x2, y2);
-    }
-  }
-  glEnd();
-
-  glColor3f(1, 0.1, 0.1);
-  for (int i = 0; i < 3; ++i) {
-    glBegin(GL_LINE_STRIP);
-    for (double t = segments[i][0]; t <= segments[i][1]; t += dt) {
-      const double d = 4.0 * cos(t) * cos(t) - 3.0;
-      if (fabs(d) < 1e-6) continue;
-
-      const double x = (a / d) / s;
-      const double y = (a * tan(t) / d) / s;
-
-      if (!std::isfinite(x) || !std::isfinite(y)) continue;
-      if (fabs(x) > 2 || fabs(y) > 2) continue;
-
-      glVertex2d(x, y);
-    }
-    glEnd();
-  }
 }
 
 void init(void) {

@@ -308,12 +308,31 @@ void Display3() {
   fractalSquares(t, size, g_recursionCurrent);
 }
 
-void Display4() {
-  //Draw the triangle-like hex line fractal here.
-  glColor3f(1, 0, 0);
-  drawRecursionLevel();
-  
+void curveB(Turtle& t, float distance, int order);
+void curveA(Turtle& t, float distance, int order) {
+    if (order == 0) t.draw(distance);
+    else {
+        curveB(t, distance / 2.0f, order - 1); t.rotate(-pi / 3.0);
+        curveA(t, distance / 2.0f, order - 1); t.rotate(-pi / 3.0);
+        curveB(t, distance / 2.0f, order - 1);
+    }
 }
+void curveB(Turtle& t, float distance, int order) {
+    if (order == 0) t.draw(distance);
+    else {
+        curveA(t, distance / 2.0f, order - 1); t.rotate(pi / 3.0);
+        curveB(t, distance / 2.0f, order - 1); t.rotate(pi / 3.0);
+        curveA(t, distance / 2.0f, order - 1);
+    }
+}
+
+void Display4() {
+    glColor3f(1, 0, 0); drawRecursionLevel();
+    Turtle t(-0.9f, -0.7f);
+    if (g_recursionCurrent % 2 != 0) t.rotate(pi / 3.0);
+    curveA(t, 1.8f, g_recursionCurrent);
+}
+
 
 template <typename FloatType>
 class JF {
@@ -354,7 +373,7 @@ public:
     m_maxIteration(maxIteration) {
   }
 
-  void draw(FloatType l, FloatType r, FloatType b, FloatType t, int samplePointsHorizontal, int samplePointsVertical) {
+void draw(FloatType l, FloatType r, FloatType b, FloatType t, int samplePointsHorizontal, int samplePointsVertical) {
     glPointSize(1);
     FloatType stepx = (m_xmax - m_xmin) / FloatType(samplePointsHorizontal);
     FloatType stepy = (m_ymax - m_ymin) / FloatType(samplePointsVertical);
@@ -375,11 +394,18 @@ public:
             } else {
                 // OUTSIDE the set: Use the iteration count for color
                 // We normalize the value between 0 and 1
-                float t = (float)iterations / (float)m_maxIteration;
+                // float t = (float)iterations / (float)m_maxIteration;
                 
-                // Example "Blue Nebula" palette:
-                // Red stays low, Green grows a bit, Blue is dominant
-                glColor3f(t * 0.2f, t * 0.5f, 0.5f + t * 0.5f);
+                // // Example "Blue Nebula" palette:
+                // // Red stays low, Green grows a bit, Blue is dominant
+                // glColor3f(t * 0.2f, t * 0.5f, 0.5f + t * 0.5f);
+
+                  float freq = 0.1f; 
+                  float r = 0.5f + 0.5f * sin(freq * iterations);
+                  float g = 0.5f + 0.5f * sin(freq * iterations + 2.0f);
+                  float b = 0.5f + 0.5f * sin(freq * iterations + 4.0f);
+                  
+                  glColor3f(r, g, b);
             }
             glVertex2d(h, v);      
         }
@@ -387,7 +413,7 @@ public:
     glEnd();
 }
 
-
+  
 };
 
 void Display5() {
@@ -432,14 +458,6 @@ void Display6() {
     if (iterations < 1) iterations = 1; // Safety check
 
     // Use 'iterations' instead of the hardcoded 100
-
-    // double x_min = -0.8;
-    // double x_max = -0.7;
-    // double y_min = 0.05;
-    // double y_max = 0.15;
-
-    // MB<double> mb(x_min, x_max, y_min, y_max, 0, 0, 2.0, iterations);
-
     MB<double> mb(-2.0, 1.0, -1.2, 1.2, 0, 0, 2.0, iterations);
 
     mb.draw(-drawSize, drawSize, -drawSize, drawSize, g_w + 1, g_h + 1);

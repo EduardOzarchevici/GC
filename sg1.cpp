@@ -137,63 +137,43 @@ void Display2() {
        \end{array} 
      \right.
    \)
+   \( d(x) = |x - \mathrm{round}(x)| \), domain \( x \in [0, 100] \).
  */
 void Display3() {
   const double xmax = 100.0;
-  const double ymax = 1.0;
-  const double localStep = 0.01;
-
-  glColor3f(1, 0.1, 0.1);
+  glColor3f(0.0f, 0.0f, 0.0f);
   glBegin(GL_LINE_STRIP);
-  glVertex2d(0.0, 1.0);
-
-  for (double x = localStep; x <= xmax; x += localStep) {
-    const double nearest = floor(x + 0.5);
-    const double d = fabs(x - nearest);
-    const double y = d / x;
-    glVertex2d(x / xmax, y / ymax);
+  for (double x = 0; x <= xmax; x += step) {
+    double y = (x == 0.0) ? 1.0 : std::fabs(x - std::round(x)) / x;
+    glVertex2d(x / xmax, y);
   }
   glEnd();
 }
 
-//3) function arguments e.g.: f(a, b, t), where a and b are function family parameters, and the is the driving variables.
-void plot(double (*x)(double, double, double), double (*y)(double, double, double), double a, double b, double intervalStart, double intervalEnd, double step = 0.01, double scaleX = 1, double scaleY = 1, GLint primitive = GL_LINE_STRIP) {
+// Parametric curve: x(a,b,t), y(a,b,t); samples t, scales by scaleX/scaleY; breaks GL_LINE_STRIP at non-finite points (asymptotes).
+void plot(double (*x)(double, double, double), double (*y)(double, double, double), double a, double b, double intervalStart, double intervalEnd, double step = 0.01, double scaleX = 1, double scaleY = 1) {
   bool drawing = false;
-
   for (double t = intervalStart; t <= intervalEnd; t += step) {
     const double px = x(a, b, t);
     const double py = y(a, b, t);
 
+
+
     if (!std::isfinite(px) || !std::isfinite(py)) {
-      if (drawing && primitive == GL_LINE_STRIP) {
+      if (drawing) {
         glEnd();
         drawing = false;
       }
       continue;
     }
-
-    const double sx = px / scaleX;
-    const double sy = py / scaleY;
-
-    if (primitive == GL_LINE_STRIP) {
-      if (!drawing) {
-        glBegin(GL_LINE_STRIP);
-        drawing = true;
-      }
-      glVertex2d(sx, sy);
+    if (!drawing) {
+      glBegin(GL_LINE_STRIP);
+      drawing = true;
     }
-    else {
-      if (!drawing) {
-        glBegin(primitive);
-        drawing = true;
-      }
-      glVertex2d(sx, sy);
-    }
+    glVertex2d(px / scaleX, py / scaleY);
   }
-
-  if (drawing) {
+  if (drawing)
     glEnd();
-  }
 }
 
 double limaconX(double a, double b, double t) {
@@ -255,7 +235,7 @@ double flowerY(double a, double, double t) {
 */
 void Display4() {
   glColor3f(1, 0.1, 0.1);
-  plot(limaconX, limaconY, 0.3, 0.2, -pi, pi, 0.001, 1.0, 1.0, GL_LINE_STRIP);
+  plot(limaconX, limaconY, 0.3, 0.2, -pi, pi, 0.001, 1.0, 1.0);
 }
 
 /*
@@ -266,7 +246,7 @@ void Display4() {
 void Display5() {
   glColor3f(1, 0.1, 0.1);
   // 3 complete periods -> 3 visible loops
-  plot(cycloidX, cycloidY, 0.1, 0.2, 0.0, 6.0 * pi, 0.001, 2.2, 0.35, GL_LINE_STRIP);
+  plot(cycloidX, cycloidY, 0.1, 0.2, 0.0, 6.0 * pi, 0.001, 2, 2.5);
 }
 
 /*
@@ -278,7 +258,7 @@ void Display5() {
 */
 void Display6() {
   glColor3f(1, 0.1, 0.1);
-  plot(epicycloidX, epicycloidY, 0.1, 0.3, 0.0, 2.0 * pi, 0.001, 0.8, 0.8, GL_LINE_STRIP);
+  plot(epicycloidX, epicycloidY, 0.1, 0.3, 0.0, 2.0 * pi, 0.001, 0.8, 0.8);
 }
 
 /*
@@ -290,7 +270,7 @@ void Display6() {
  */
 void Display7() {
   glColor3f(1, 0.1, 0.1);
-  plot(hypocycloidX, hypocycloidY, 0.1, 0.3, 0.0, 2.0 * pi, 0.001, 0.6, 0.6, GL_LINE_STRIP);
+  plot(hypocycloidX, hypocycloidY, 0.1, 0.3, 0.0, 2.0 * pi, 0.001, 0.6, 0.6);
 }
 
 /*
@@ -300,7 +280,7 @@ void Display7() {
 */
 void Display8() {
   glColor3f(1, 0.1, 0.1);
-  plot(logSpiralX, logSpiralY, 0.02, 0.0, 0.0, 4.0, 0.001, 3.2, 3.2, GL_LINE_STRIP);
+  plot(logSpiralX, logSpiralY, 0.02, 0.0, 0.0, 4.0, 0.001, 3.2, 3.2);
 }
 
 /*
@@ -310,7 +290,7 @@ void Display8() {
 */
 void Display9() {
   glColor3f(1, 0.1, 0.1);
-  plot(flowerX, flowerY, 10.0, 0.0, 0.0, 2.0 * pi, 0.001, 1.0, 1.0, GL_LINE_STRIP);
+  plot(flowerX, flowerY, 10.0, 0.0, 0.0, 2.0 * pi, 0.001, 1.0, 1.0);
 }
 
 /*
